@@ -23,10 +23,10 @@ def verificarTipos(arvore, tabelaSimbolos):
     erros = []
     simbolos = tabelaSimbolos.get("simbolos", {})
 
-    operadores_aritmeticos = {"+", "-", "*", "^"}
-    operadores_int = {"/", "%"}       # divisão inteira e resto
-    operadores_real = {"|"}           # divisão real
-    operadores_relacionais = {">", "<", ">=", "<=", "==", "!="}
+    operadores_aritmeticos = {"OP_SUM", "OP_SUB", "OP_MUL", "OP_POW"}
+    operadores_int = {"OP_DIVI", "OP_MOD"}       # divisão inteira e resto
+    operadores_real = {"OP_DIVR"}           # divisão real
+    operadores_relacionais = {"OP_LT", "OP_GT"}
     operadores_logicos = {"&&", "||", "AND", "OR"}
     operadores_unarios_logicos = {"!", "NOT"}
 
@@ -64,13 +64,7 @@ def verificarTipos(arvore, tabelaSimbolos):
         if tipo_token == "REAL":
             return TIPO_REAL
 
-        if tipo_token == "BOOL":
-            return TIPO_BOOL
-
-        if valor in ["true", "false", "TRUE", "FALSE"]:
-            return TIPO_BOOL
-
-        if tipo_token in ["MEM", "ID", "IDENTIFICADOR"]:
+        if tipo_token == "MEM_ID":
             nome = valor
 
             if nome not in simbolos:
@@ -85,13 +79,27 @@ def verificarTipos(arvore, tabelaSimbolos):
             return info.get("tipo", TIPO_ERRO)
 
         return None
+    def encontrar_operador(no):
+        token = no.get("token")
+
+        if token:
+            tipo = token.get("tipo")
+            if tipo and tipo.startswith("OP_"):
+                return tipo
+
+        for filho in no.get("filhos", []):
+            op = encontrar_operador(filho)
+            if op:
+                return op
+
+        return None
 
     def inferir_operacao(no, tipos_filhos):
         simbolo = no.get("simbolo")
         token = no.get("token") or {}
         valor = token.get("valor")
 
-        operador = valor if valor else simbolo
+        operador = encontrar_operador(no)
 
         tipos_validos = [t for t in tipos_filhos if t is not None]
 
