@@ -1,10 +1,11 @@
-# Paulo Henrique Eidi Mino - Aluno 3
+# Lucas Balint Vilar - Aluno 1
 
 from tokensConfig import criarToken, OPERADORES_SIMPLES
 from estadosLexicos import estadoNumero, estadoPalavra
  
 def lerTokens(arquivo):
     tokens = []
+    dentroComentario = False
  
     try:
         with open(arquivo, 'r') as f:
@@ -19,13 +20,31 @@ def lerTokens(arquivo):
  
         i = 0
         while i < len(linha):
+
+            # Início de comentário: *{
+            if not dentroComentario and i + 1 < len(linha) and linha[i] == "*" and linha[i + 1] == "{":
+                dentroComentario = True
+                i += 2
+                continue
+
+            # Fim de comentário: }*
+            if dentroComentario and i + 1 < len(linha) and linha[i] == "}" and linha[i + 1] == "*":
+                dentroComentario = False
+                i += 2
+                continue
+
+            # Enquanto estiver dentro do comentário, ignora caracteres
+            if dentroComentario:
+                i += 1
+                continue
+
             ch = linha[i]
  
             # Espaços em branco
             if ch in (' ', '\t'):
                 i += 1
                 continue
- 
+            
             # Parênteses
             if ch == '(':
                 tokens.append(criarToken("LPAREN", "(", num_linha))
@@ -60,6 +79,9 @@ def lerTokens(arquivo):
                 f"Erro léxico na linha {num_linha}: "
                 f"caractere inesperado '{ch}'"
             )
+        
+    if dentroComentario:
+        raise ValueError("Erro léxico: comentárioi iniciado com *{ não foi fechado com }*.")
  
     # Token de fim de entrada (necessário para o parser)
     tokens.append(criarToken("$", "$", -1))
