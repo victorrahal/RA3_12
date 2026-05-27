@@ -41,3 +41,27 @@ def prepararEntradaSemantica(arquivo):
         "arvore_sintatica_json": arvoreSintaticaJson,
         "arvore_simplificada": arvoreSimplificada
     }
+
+def removerComentarios(conteudo):
+    resultado = ''
+    i = 0
+    dentroComentario = False
+
+    while i < len(conteudo):
+        if not dentroComentario and i + 1 < len(conteudo) and conteudo[i] == "*" and conteudo[i + 1] == "{":
+            dentroComentario = True
+            i += 2
+            continue
+        if dentroComentario and i + 1 < len(conteudo) and conteudo[i] == "}" and conteudo[i + 1] == "*":
+            dentroComentario = False
+            i += 2
+            continue
+        if not dentroComentario:
+            resultado += conteudo[i]
+
+        i += 1
+
+    if dentroComentario:
+        raise ValueError("Erro léxico: comentário iniciado com '*{' não foi fechado com '}*'.")
+    
+    return resultado
