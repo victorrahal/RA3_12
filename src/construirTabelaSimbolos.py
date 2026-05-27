@@ -5,6 +5,15 @@
 # Saída é consumida por verificarTipos() (Aluno 3) e gerarArvoreAtribuida()
 # (Aluno 4).
 
+import json
+import os
+
+# Caminhos padrão de saída. Mesma convenção usada por gerarArvore.py e
+# gerarAssembly.py da Fase 2: caminho calculado a partir da raiz do projeto
+# uma única vez, no momento da importação do módulo.
+_RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+_CAMINHO_TABELA_JSON = os.path.join(_RAIZ, "saida", "tabela_simbolos.json")
+
 # Tipos em MAIÚSCULAS para alinhar com os nomes dos terminais da gramática
 # LL(1) da Fase 2 (INT, REAL, BOOL).
 TIPO_INT = "INT"
@@ -22,7 +31,6 @@ COD_REDEFINICAO_INCOMPATIVEL = "REDEFINICAO_INCOMPATIVEL"
 COD_RES_INDICE_INVALIDO = "RES_INDICE_INVALIDO"
 COD_FOR_VARIAVEL_REDEFINIDA = "FOR_VARIAVEL_REDEFINIDA"
 
-
 def _criar_simbolo(nome, tipo, linha):
     return {
         "nome": nome,
@@ -33,7 +41,6 @@ def _criar_simbolo(nome, tipo, linha):
         "escopo": ESCOPO_GLOBAL,
     }
 
-
 def _criar_erro(codigo, linha, simbolo, mensagem):
     return {
         "codigo": codigo,
@@ -41,7 +48,6 @@ def _criar_erro(codigo, linha, simbolo, mensagem):
         "simbolo": simbolo,
         "mensagem": mensagem,
     }
-
 
 def _inferir_tipo_valor(no_valor, simbolos):
     if not isinstance(no_valor, dict):
@@ -67,7 +73,6 @@ def _inferir_tipo_valor(no_valor, simbolos):
     # é responsabilidade do Aluno 3 (Seção 7.3 do enunciado). Aqui retornamos
     # INDEFINIDO; verificarTipos() atualiza a tabela depois.
     return TIPO_INDEFINIDO
-
 
 def _tratar_atribuicao_memoria(no, simbolos, erros, contexto):
     nome = no.get("nome")
@@ -107,7 +112,6 @@ def _tratar_atribuicao_memoria(no, simbolos, erros, contexto):
         # Mantemos o tipo original. Sobrescrever propagaria erros em cascata
         # para todos os usos posteriores da variável.
 
-
 def _tratar_leitura_memoria(no, simbolos, erros, contexto):
     nome = no.get("nome")
     linha = no.get("linha")
@@ -124,7 +128,6 @@ def _tratar_leitura_memoria(no, simbolos, erros, contexto):
 
     if linha not in simbolos[nome]["linhas_uso"]:
         simbolos[nome]["linhas_uso"].append(linha)
-
 
 def _tratar_res(no, simbolos, erros, contexto):
     indice = no.get("indice")
@@ -153,7 +156,6 @@ def _tratar_res(no, simbolos, erros, contexto):
             f"referência a uma linha inexistente (só existem "
             f"{linha_logica} linha(s) anterior(es)."
         ))
-
 
 def _tratar_for(no, simbolos, erros, contexto):
     nome_variavel = no.get("variavel")
@@ -188,27 +190,22 @@ def _tratar_for(no, simbolos, erros, contexto):
 
     _percorrer(no_corpo, simbolos, erros, contexto)
 
-
 def _tratar_expressao_aritmetica(no, simbolos, erros, contexto):
     for operando in no.get("operandos", []):
         _percorrer(operando, simbolos, erros, contexto)
 
-
 def _tratar_condicao(no, simbolos, erros, contexto):
     _percorrer(no.get("esquerdo"), simbolos, erros, contexto)
     _percorrer(no.get("direito"), simbolos, erros, contexto)
-
 
 def _tratar_if(no, simbolos, erros, contexto):
     _percorrer(no.get("condicao"), simbolos, erros, contexto)
     _percorrer(no.get("entao"), simbolos, erros, contexto)
     _percorrer(no.get("senao"), simbolos, erros, contexto)
 
-
 def _tratar_while(no, simbolos, erros, contexto):
     _percorrer(no.get("condicao"), simbolos, erros, contexto)
     _percorrer(no.get("corpo"), simbolos, erros, contexto)
-
 
 def _percorrer(no, simbolos, erros, contexto):
     if not isinstance(no, dict):
@@ -247,7 +244,6 @@ def _percorrer(no, simbolos, erros, contexto):
     if handler:
         handler(no, simbolos, erros, contexto)
 
-
 def construirTabelaSimbolos(arvore):
     simbolos = {}
     erros = []
@@ -260,3 +256,20 @@ def construirTabelaSimbolos(arvore):
         "simbolos": simbolos,
         "erros": erros,
     }
+
+def salvarTabelaSimbolos(resultado, caminho=None):
+    if caminho is None:
+        caminho = _CAMINHO_TABELA_JSON
+
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
+
+    simbolos = resultado.get("simbolos", {})
+    dados = {
+        "total_simbolos": len(simbolos),
+        "simbolos": simbolos,
+    }
+
+    with open(caminho, "w", encoding="utf-8") as f:
+        json.dump(dados, f, indent=2, ensure_ascii=False)
+
+    return caminho
