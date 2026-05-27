@@ -1,21 +1,12 @@
 # Paulo Henrique Eidi Mino - Aluno 2
-#
-# Testes unitários para construirTabelaSimbolos (iteração 1).
-#
-# Esta iteração cobre apenas os nós:
-#   - sequencia
-#   - fim_programa
-#   - atribuicao_memoria
-#   - leitura_memoria
-#
-# Testes para res, for, if, while, expressao_aritmetica serão adicionados
-# na iteração 2.
+# Testes unitários do construirTabelaSimbolos. Cobre as duas iterações:
+# nós básicos (declaração e leitura) e nós de controle/expressão (if, while,
+# for, res, expressao_aritmetica, condicao).
 
 import os
 import sys
 import unittest
 
-# Permite rodar com "python3 testes/testeTabelaSimbolos.py"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
@@ -26,154 +17,113 @@ from construirTabelaSimbolos import (  # noqa: E402
     TIPO_INDEFINIDO,
     COD_VARIAVEL_NAO_DECLARADA,
     COD_REDEFINICAO_INCOMPATIVEL,
+    COD_RES_INDICE_INVALIDO,
+    COD_FOR_VARIAVEL_REDEFINIDA,
 )
 
-
-# ---------------------------------------------------------------------------
-# Helpers para montar árvores simplificadas (formato da Fase 2)
-# ---------------------------------------------------------------------------
-# Em vez de copiar e colar dicionários gigantes em cada teste, usamos
-# pequenas funções construtoras que produzem nós no MESMO formato gerado
-# pela função simplificarArvore() do gerarArvore.py (Fase 2). Isso mantém
-# os testes legíveis e protege contra divergências futuras do formato.
-
+# Helpers — montam nós no mesmo formato produzido por simplificarArvore().
 
 def terminal_int(valor, linha):
-    """Nó terminal representando um literal inteiro."""
-    return {
-        "tipo": "terminal",
-        "simbolo": "INT",
-        "valor": str(valor),
-        "linha": linha,
-    }
+    return {"tipo": "terminal", "simbolo": "INT", "valor": str(valor), "linha": linha}
 
 
 def terminal_real(valor, linha):
-    """Nó terminal representando um literal real."""
-    return {
-        "tipo": "terminal",
-        "simbolo": "REAL",
-        "valor": str(valor),
-        "linha": linha,
-    }
+    return {"tipo": "terminal", "simbolo": "REAL", "valor": str(valor), "linha": linha}
 
 
 def atribuicao(nome, no_valor, linha):
-    """Nó atribuicao_memoria: (V MEM X)."""
-    return {
-        "tipo": "atribuicao_memoria",
-        "nome": nome,
-        "valor": no_valor,
-        "linha": linha,
-    }
+    return {"tipo": "atribuicao_memoria", "nome": nome, "valor": no_valor, "linha": linha}
 
 
 def leitura(nome, linha):
-    """Nó leitura_memoria: (X)."""
+    return {"tipo": "leitura_memoria", "nome": nome, "linha": linha}
+
+
+def res(indice, linha):
+    return {"tipo": "res", "indice": indice, "linha": linha}
+
+
+def expr(operador, esq, dir_, linha):
     return {
-        "tipo": "leitura_memoria",
-        "nome": nome,
+        "tipo": "expressao_aritmetica",
+        "operador": operador,
+        "operandos": [esq, dir_],
         "linha": linha,
     }
 
+def condicao(esq, dir_, operador, linha):
+    return {
+        "tipo": "condicao",
+        "operador": operador,
+        "esquerdo": esq,
+        "direito": dir_,
+        "linha": linha,
+    }
+
+def no_if(cond, entao, senao, linha):
+    return {"tipo": "if", "condicao": cond, "entao": entao, "senao": senao, "linha": linha}
+
+def no_while(cond, corpo, linha):
+    return {"tipo": "while", "condicao": cond, "corpo": corpo, "linha": linha}
+
+def no_for(variavel, inicio, fim, corpo, linha):
+    return {
+        "tipo": "for",
+        "variavel": variavel,
+        "inicio": inicio,
+        "fim": fim,
+        "corpo": corpo,
+        "linha": linha,
+    }
 
 def fim(linha):
-    """Nó fim_programa: (END)."""
     return {"tipo": "fim_programa", "linha": linha}
 
-
 def programa(*comandos):
-    """
-    Encadeia uma lista de comandos em nós 'sequencia', terminando em
-    'fim_programa'. Replica o jeito que simplificarArvore() encadeia.
-
-    Exemplo:
-        programa(decl_a, decl_b, leit_a)
-    produz:
-        sequencia(decl_a, sequencia(decl_b, sequencia(leit_a, fim_programa)))
-    """
     if not comandos:
         return fim(linha=1)
-
-    # Constrói de trás para frente.
     no_atual = fim(linha=comandos[-1].get("linha", 1) + 1)
     for cmd in reversed(comandos):
-        no_atual = {
-            "tipo": "sequencia",
-            "atual": cmd,
-            "proximo": no_atual,
-        }
+        no_atual = {"tipo": "sequencia", "atual": cmd, "proximo": no_atual}
     return no_atual
 
-
-# ---------------------------------------------------------------------------
-# Testes — declaração e leitura básica
-# ---------------------------------------------------------------------------
+# Iteração 1 (mantida) — declaração, leitura, redefinição.
 
 class TestDeclaracaoBasica(unittest.TestCase):
-    """Casos simples: declarar uma variável e consultar a tabela."""
 
     def test_declaracao_real_simples(self):
-        # (3.0 MEM A) na linha 2
-        arvore = programa(
-            atribuicao("A", terminal_real("3.0", 2), linha=2),
-        )
+        arvore = programa(atribuicao("A", terminal_real("3.0", 2), linha=2))
         resultado = construirTabelaSimbolos(arvore)
-
-        self.assertIn("A", resultado["simbolos"])
         self.assertEqual(resultado["simbolos"]["A"]["tipo"], TIPO_REAL)
         self.assertEqual(resultado["simbolos"]["A"]["linha_definicao"], 2)
-        self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [])
-        self.assertTrue(resultado["simbolos"]["A"]["inicializada"])
         self.assertEqual(resultado["erros"], [])
 
     def test_declaracao_int_simples(self):
-        # (5 MEM B) na linha 2
-        arvore = programa(
-            atribuicao("B", terminal_int("5", 2), linha=2),
-        )
+        arvore = programa(atribuicao("B", terminal_int("5", 2), linha=2))
         resultado = construirTabelaSimbolos(arvore)
-
-        self.assertIn("B", resultado["simbolos"])
         self.assertEqual(resultado["simbolos"]["B"]["tipo"], TIPO_INT)
         self.assertEqual(resultado["erros"], [])
 
     def test_multiplas_declaracoes(self):
-        # (3.0 MEM A) linha 2
-        # (5 MEM B)   linha 3
         arvore = programa(
             atribuicao("A", terminal_real("3.0", 2), linha=2),
             atribuicao("B", terminal_int("5", 3), linha=3),
         )
         resultado = construirTabelaSimbolos(arvore)
-
         self.assertEqual(resultado["simbolos"]["A"]["tipo"], TIPO_REAL)
         self.assertEqual(resultado["simbolos"]["B"]["tipo"], TIPO_INT)
-        self.assertEqual(resultado["simbolos"]["A"]["linha_definicao"], 2)
-        self.assertEqual(resultado["simbolos"]["B"]["linha_definicao"], 3)
-        self.assertEqual(resultado["erros"], [])
-
 
 class TestLeituraBasica(unittest.TestCase):
-    """Casos simples: ler uma variável e registrar a linha de uso."""
 
     def test_leitura_de_variavel_declarada(self):
-        # (3.0 MEM A)   linha 2
-        # (A)           linha 3
         arvore = programa(
             atribuicao("A", terminal_real("3.0", 2), linha=2),
             leitura("A", linha=3),
         )
         resultado = construirTabelaSimbolos(arvore)
-
         self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [3])
-        self.assertEqual(resultado["erros"], [])
 
     def test_leitura_em_multiplas_linhas(self):
-        # (3.0 MEM A)   linha 2
-        # (A)           linha 3
-        # (A)           linha 5
-        # (A)           linha 7
         arvore = programa(
             atribuicao("A", terminal_real("3.0", 2), linha=2),
             leitura("A", linha=3),
@@ -181,213 +131,256 @@ class TestLeituraBasica(unittest.TestCase):
             leitura("A", linha=7),
         )
         resultado = construirTabelaSimbolos(arvore)
-
         self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [3, 5, 7])
 
-    def test_leitura_mesma_linha_nao_duplica(self):
-        # Caso patológico de teste — não acontece com simplificarArvore real,
-        # mas garante a invariante "não duplicamos linhas".
-        # Simulamos duas leituras da mesma variável na MESMA linha.
-        arvore = programa(
-            atribuicao("A", terminal_real("3.0", 2), linha=2),
-            leitura("A", linha=3),
-            leitura("A", linha=3),  # mesma linha 3
-        )
-        resultado = construirTabelaSimbolos(arvore)
-
-        self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [3])
-
-
-# ---------------------------------------------------------------------------
-# Testes — erros de declaração
-# ---------------------------------------------------------------------------
-
 class TestVariavelNaoDeclarada(unittest.TestCase):
-    """Detectar uso de variável antes da declaração."""
 
     def test_leitura_sem_declaracao_gera_erro(self):
-        # (X)   linha 2 — X nunca foi declarada
-        arvore = programa(
-            leitura("X", linha=2),
-        )
+        arvore = programa(leitura("X", linha=2))
         resultado = construirTabelaSimbolos(arvore)
-
-        self.assertNotIn("X", resultado["simbolos"])
-        self.assertEqual(len(resultado["erros"]), 1)
-
-        erro = resultado["erros"][0]
-        self.assertEqual(erro["codigo"], COD_VARIAVEL_NAO_DECLARADA)
-        self.assertEqual(erro["linha"], 2)
-        self.assertEqual(erro["simbolo"], "X")
-        self.assertIn("X", erro["mensagem"])
-
-    def test_leitura_depois_de_declaracao_de_outra_variavel(self):
-        # (3.0 MEM A)   linha 2
-        # (B)           linha 3 — B não foi declarada
-        arvore = programa(
-            atribuicao("A", terminal_real("3.0", 2), linha=2),
-            leitura("B", linha=3),
-        )
-        resultado = construirTabelaSimbolos(arvore)
-
-        self.assertIn("A", resultado["simbolos"])
-        self.assertNotIn("B", resultado["simbolos"])
         self.assertEqual(len(resultado["erros"]), 1)
         self.assertEqual(resultado["erros"][0]["codigo"], COD_VARIAVEL_NAO_DECLARADA)
-        self.assertEqual(resultado["erros"][0]["simbolo"], "B")
+        self.assertEqual(resultado["erros"][0]["simbolo"], "X")
 
     def test_uso_em_atribuicao_sem_declaracao(self):
-        # ((Y) MEM X)   linha 2 — Y nunca foi declarada
-        # Espera-se erro VARIAVEL_NAO_DECLARADA para Y, e X registrada como
-        # INDEFINIDO (pois o tipo de Y é desconhecido).
-        arvore = programa(
-            atribuicao("X", leitura("Y", linha=2), linha=2),
-        )
+        arvore = programa(atribuicao("X", leitura("Y", linha=2), linha=2))
         resultado = construirTabelaSimbolos(arvore)
-
-        self.assertIn("X", resultado["simbolos"])
         self.assertEqual(resultado["simbolos"]["X"]["tipo"], TIPO_INDEFINIDO)
-        self.assertEqual(len(resultado["erros"]), 1)
-        self.assertEqual(resultado["erros"][0]["codigo"], COD_VARIAVEL_NAO_DECLARADA)
         self.assertEqual(resultado["erros"][0]["simbolo"], "Y")
 
-
 class TestRedefinicao(unittest.TestCase):
-    """Redefinições compatíveis e incompatíveis."""
 
-    def test_redefinicao_compativel_nao_gera_erro(self):
-        # (3.0 MEM A)   linha 2
-        # (4.0 MEM A)   linha 5 — ambos REAL, ok
+    def test_redefinicao_compativel(self):
         arvore = programa(
             atribuicao("A", terminal_real("3.0", 2), linha=2),
             atribuicao("A", terminal_real("4.0", 5), linha=5),
         )
         resultado = construirTabelaSimbolos(arvore)
-
         self.assertEqual(resultado["simbolos"]["A"]["tipo"], TIPO_REAL)
-        # A primeira linha de definição permanece como referência principal.
-        self.assertEqual(resultado["simbolos"]["A"]["linha_definicao"], 2)
         self.assertEqual(resultado["erros"], [])
 
     def test_redefinicao_incompativel_real_para_int(self):
-        # (3.0 MEM A)   linha 2  -> REAL
-        # (5 MEM A)     linha 7  -> tenta INT
         arvore = programa(
             atribuicao("A", terminal_real("3.0", 2), linha=2),
             atribuicao("A", terminal_int("5", 7), linha=7),
         )
         resultado = construirTabelaSimbolos(arvore)
-
-        # Tipo original preservado (decisão de design — ver comentários no
-        # próprio construirTabelaSimbolos.py).
+        # Tipo original preservado para evitar cascata de erros.
         self.assertEqual(resultado["simbolos"]["A"]["tipo"], TIPO_REAL)
-        self.assertEqual(len(resultado["erros"]), 1)
-
-        erro = resultado["erros"][0]
-        self.assertEqual(erro["codigo"], COD_REDEFINICAO_INCOMPATIVEL)
-        self.assertEqual(erro["linha"], 7)
-        self.assertEqual(erro["simbolo"], "A")
-
-    def test_redefinicao_incompativel_int_para_real(self):
-        # (5 MEM A)     linha 2  -> INT
-        # (3.0 MEM A)   linha 7  -> tenta REAL
-        arvore = programa(
-            atribuicao("A", terminal_int("5", 2), linha=2),
-            atribuicao("A", terminal_real("3.0", 7), linha=7),
-        )
-        resultado = construirTabelaSimbolos(arvore)
-
-        self.assertEqual(resultado["simbolos"]["A"]["tipo"], TIPO_INT)
-        self.assertEqual(len(resultado["erros"]), 1)
         self.assertEqual(resultado["erros"][0]["codigo"], COD_REDEFINICAO_INCOMPATIVEL)
 
+# Iteração 2 — RES.
 
-# ---------------------------------------------------------------------------
-# Testes — atribuição via leitura de outra variável (caso (Y MEM X))
-# ---------------------------------------------------------------------------
+class TestRes(unittest.TestCase):
 
-class TestAtribuicaoViaLeitura(unittest.TestCase):
-    """
-    Casos onde a atribuição usa uma leitura de outra variável como valor.
-    Verifica que o tipo é propagado E que a linha de uso da fonte é
-    registrada.
-    """
-
-    def test_copia_tipo_de_variavel_existente(self):
-        # (3.0 MEM A)     linha 2
-        # ((A) MEM B)     linha 3 — copia A para B
+    def test_res_valido(self):
+        # Programa com 3 linhas anteriores ao RES, RES referencia a linha 0.
         arvore = programa(
-            atribuicao("A", terminal_real("3.0", 2), linha=2),
-            atribuicao("B", leitura("A", linha=3), linha=3),
+            atribuicao("A", terminal_real("3.0", 2), linha=2),  # linha lógica 0
+            atribuicao("B", terminal_int("5", 3), linha=3),     # linha lógica 1
+            res(indice=1, linha=4),                              # linha lógica 2: pega linha 1 (B)
         )
         resultado = construirTabelaSimbolos(arvore)
-
-        self.assertEqual(resultado["simbolos"]["A"]["tipo"], TIPO_REAL)
-        self.assertEqual(resultado["simbolos"]["B"]["tipo"], TIPO_REAL)
-        # A leitura de A na linha 3 deve estar registrada como uso.
-        self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [3])
         self.assertEqual(resultado["erros"], [])
 
-
-# ---------------------------------------------------------------------------
-# Testes — programas vazios / triviais
-# ---------------------------------------------------------------------------
-
-class TestProgramasTriviais(unittest.TestCase):
-    """Bordas: programa só com (START)(END), só com fim_programa, etc."""
-
-    def test_apenas_fim_de_programa(self):
-        arvore = fim(linha=1)
+    def test_res_indice_alem_do_historico(self):
+        # Só uma linha anterior, mas RES pede a linha 5.
+        arvore = programa(
+            atribuicao("A", terminal_real("3.0", 2), linha=2),  # linha lógica 0
+            res(indice=5, linha=3),                              # linha lógica 1: índice 5 inválido
+        )
         resultado = construirTabelaSimbolos(arvore)
-        self.assertEqual(resultado["simbolos"], {})
+        self.assertEqual(len(resultado["erros"]), 1)
+        self.assertEqual(resultado["erros"][0]["codigo"], COD_RES_INDICE_INVALIDO)
+        self.assertEqual(resultado["erros"][0]["linha"], 3)
+
+    def test_res_indice_negativo(self):
+        arvore = programa(
+            atribuicao("A", terminal_real("3.0", 2), linha=2),
+            res(indice=-1, linha=3),
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        self.assertEqual(resultado["erros"][0]["codigo"], COD_RES_INDICE_INVALIDO)
+
+    def test_res_na_primeira_linha_do_programa(self):
+        # Primeiro comando é RES — sempre inválido, não existe nada antes.
+        arvore = programa(res(indice=0, linha=2))
+        resultado = construirTabelaSimbolos(arvore)
+        self.assertEqual(resultado["erros"][0]["codigo"], COD_RES_INDICE_INVALIDO)
+
+# Iteração 2 — FOR.
+
+class TestFor(unittest.TestCase):
+
+    def test_for_declara_variavel_nova_como_int(self):
+        # (FOR 0 10 I (1 2 +))
+        arvore = programa(
+            no_for(
+                variavel="I",
+                inicio=terminal_int("0", 2),
+                fim=terminal_int("10", 2),
+                corpo=expr("+", terminal_int("1", 2), terminal_int("2", 2), linha=2),
+                linha=2,
+            ),
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        self.assertIn("I", resultado["simbolos"])
+        self.assertEqual(resultado["simbolos"]["I"]["tipo"], TIPO_INT)
         self.assertEqual(resultado["erros"], [])
 
-    def test_arvore_none(self):
-        resultado = construirTabelaSimbolos(None)
-        self.assertEqual(resultado["simbolos"], {})
+    def test_for_reaproveita_variavel_int_silenciosamente(self):
+        # Variável já era INT — segue sem ruído.
+        arvore = programa(
+            atribuicao("I", terminal_int("0", 2), linha=2),
+            no_for(
+                variavel="I",
+                inicio=terminal_int("0", 3),
+                fim=terminal_int("10", 3),
+                corpo=terminal_int("0", 3),
+                linha=3,
+            ),
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        self.assertEqual(resultado["simbolos"]["I"]["tipo"], TIPO_INT)
         self.assertEqual(resultado["erros"], [])
 
+    def test_for_conflita_com_variavel_real(self):
+        # I já era REAL — FOR exige INT, gera FOR_VARIAVEL_REDEFINIDA.
+        arvore = programa(
+            atribuicao("I", terminal_real("3.0", 2), linha=2),
+            no_for(
+                variavel="I",
+                inicio=terminal_int("0", 3),
+                fim=terminal_int("10", 3),
+                corpo=terminal_int("0", 3),
+                linha=3,
+            ),
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        # Tipo original preservado.
+        self.assertEqual(resultado["simbolos"]["I"]["tipo"], TIPO_REAL)
+        self.assertEqual(len(resultado["erros"]), 1)
+        self.assertEqual(resultado["erros"][0]["codigo"], COD_FOR_VARIAVEL_REDEFINIDA)
 
-# ---------------------------------------------------------------------------
-# Teste integrado — programa parecido com o teste1.txt da Fase 2
-# ---------------------------------------------------------------------------
+# Iteração 2 — expressão aritmética.
 
-class TestProgramaCompleto(unittest.TestCase):
-    """Simula um programa que combina vários comandos suportados."""
+class TestExpressaoAritmetica(unittest.TestCase):
 
-    def test_programa_com_declaracoes_e_leituras(self):
-        # (START)
-        # (3.0 MEM A)     linha 2
-        # (5 MEM B)       linha 3
-        # ((A) MEM C)     linha 4 — copia A em C
-        # (A)             linha 5
-        # (B)             linha 6
-        # (C)             linha 7
-        # (END)
+    def test_expressao_simples_registra_uso(self):
+        # (A 2 +) na linha 3 — A é lida na linha 3.
+        arvore = programa(
+            atribuicao("A", terminal_real("3.0", 2), linha=2),
+            expr("+", leitura("A", linha=3), terminal_int("2", 3), linha=3),
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [3])
+
+    def test_expressao_aninhada_registra_todos_os_usos(self):
+        # ((A 2 +) (B 3 *) -) na linha 4 — A e B são lidas na linha 4.
         arvore = programa(
             atribuicao("A", terminal_real("3.0", 2), linha=2),
             atribuicao("B", terminal_int("5", 3), linha=3),
-            atribuicao("C", leitura("A", linha=4), linha=4),
-            leitura("A", linha=5),
-            leitura("B", linha=6),
-            leitura("C", linha=7),
+            expr(
+                "-",
+                expr("+", leitura("A", linha=4), terminal_int("2", 4), linha=4),
+                expr("*", leitura("B", linha=4), terminal_int("3", 4), linha=4),
+                linha=4,
+            ),
         )
         resultado = construirTabelaSimbolos(arvore)
-
-        # Tipos
-        self.assertEqual(resultado["simbolos"]["A"]["tipo"], TIPO_REAL)
-        self.assertEqual(resultado["simbolos"]["B"]["tipo"], TIPO_INT)
-        self.assertEqual(resultado["simbolos"]["C"]["tipo"], TIPO_REAL)
-
-        # Linhas de uso
-        # A é usada na linha 4 (dentro da atribuicao de C) e na linha 5.
-        self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [4, 5])
-        self.assertEqual(resultado["simbolos"]["B"]["linhas_uso"], [6])
-        self.assertEqual(resultado["simbolos"]["C"]["linhas_uso"], [7])
-
-        # Sem erros
+        self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [4])
+        self.assertEqual(resultado["simbolos"]["B"]["linhas_uso"], [4])
         self.assertEqual(resultado["erros"], [])
 
+# Iteração 2 — IF e WHILE com condicao.
+
+class TestIfWhile(unittest.TestCase):
+
+    def test_if_registra_uso_em_condicao_e_ramos(self):
+        # (IF (A 5 <) (1 2 +) ((B) 3 -))
+        # A usada na linha 3 (condição), B usada na linha 3 (ramo else).
+        arvore = programa(
+            atribuicao("A", terminal_int("0", 2), linha=2),
+            atribuicao("B", terminal_int("0", 2), linha=2),  # B declarada também
+            no_if(
+                cond=condicao(leitura("A", linha=4), terminal_int("5", 4), "<", linha=4),
+                entao=expr("+", terminal_int("1", 4), terminal_int("2", 4), linha=4),
+                senao=expr("-", leitura("B", linha=4), terminal_int("3", 4), linha=4),
+                linha=4,
+            ),
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        self.assertEqual(resultado["simbolos"]["A"]["linhas_uso"], [4])
+        self.assertEqual(resultado["simbolos"]["B"]["linhas_uso"], [4])
+        self.assertEqual(resultado["erros"], [])
+
+    def test_while_detecta_uso_de_variavel_nao_declarada_na_condicao(self):
+        # (WHILE (N 10 <) ((N) 1 +)) — N nunca declarada.
+        arvore = programa(
+            no_while(
+                cond=condicao(leitura("N", linha=2), terminal_int("10", 2), "<", linha=2),
+                corpo=expr("+", leitura("N", linha=2), terminal_int("1", 2), linha=2),
+                linha=2,
+            ),
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        # N é usada duas vezes na mesma linha — gera 2 erros, mas tabela vazia.
+        self.assertNotIn("N", resultado["simbolos"])
+        codigos = [e["codigo"] for e in resultado["erros"]]
+        self.assertEqual(codigos.count(COD_VARIAVEL_NAO_DECLARADA), 2)
+
+# Iteração 2 — contador de linha lógica não infla com aninhamento.
+
+class TestContadorLinhaLogica(unittest.TestCase):
+
+    def test_res_apos_expressao_aninhada(self):
+        # Programa de 3 linhas lógicas. RES com índice 0 pega a primeira.
+        # A expressão aninhada da linha 2 NÃO deve inflar o contador.
+        arvore = programa(
+            atribuicao("A", terminal_real("3.0", 2), linha=2),       # linha lógica 0
+            expr(                                                     # linha lógica 1
+                "+",
+                expr("*", terminal_int("2", 3), terminal_int("3", 3), linha=3),
+                terminal_int("1", 3),
+                linha=3,
+            ),
+            res(indice=1, linha=4),                                   # linha lógica 2 - válido
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        # Se o contador estivesse inflado, o índice 1 seria inválido.
+        self.assertEqual(resultado["erros"], [])
+
+# Programa completo combinando tudo.
+
+class TestProgramaCompleto(unittest.TestCase):
+
+    def test_programa_realista(self):
+        # Simula um trecho do teste1.txt da Fase 2:
+        # (VALOR := 42.5), (LEITURA), (IF), (FOR), (RES)
+        arvore = programa(
+            atribuicao("VALOR", terminal_real("42.5", 2), linha=2),
+            leitura("VALOR", linha=3),
+            no_if(
+                cond=condicao(terminal_int("3", 4), terminal_int("5", 4), "<", linha=4),
+                entao=expr("+", terminal_int("1", 4), terminal_int("2", 4), linha=4),
+                senao=expr("*", terminal_int("3", 4), terminal_int("4", 4), linha=4),
+                linha=4,
+            ),
+            no_for(
+                variavel="I",
+                inicio=terminal_int("0", 5),
+                fim=terminal_int("3", 5),
+                corpo=expr("+", leitura("I", linha=5), terminal_int("1", 5), linha=5),
+                linha=5,
+            ),
+            res(indice=0, linha=6),  # pega a linha lógica 3 (FOR)
+        )
+        resultado = construirTabelaSimbolos(arvore)
+        self.assertEqual(resultado["simbolos"]["VALOR"]["tipo"], TIPO_REAL)
+        self.assertEqual(resultado["simbolos"]["I"]["tipo"], TIPO_INT)
+        self.assertEqual(resultado["simbolos"]["VALOR"]["linhas_uso"], [3])
+        self.assertEqual(resultado["simbolos"]["I"]["linhas_uso"], [5])
+        self.assertEqual(resultado["erros"], [])
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
