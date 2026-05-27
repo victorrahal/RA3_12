@@ -1,8 +1,9 @@
 # Paulo Henrique Eidi Mino - Aluno 2
 # Constrói a tabela de símbolos a partir da árvore sintática simplificada
 # da Fase 2 e detecta erros semânticos de declaração (uso sem declaração,
-# redefinição incompatível). Saída é consumida por verificarTipos() (Aluno 3)
-# e gerarArvoreAtribuida() (Aluno 4).
+# redefinição incompatível, índice RES inválido, variável de FOR conflitante).
+# Saída é consumida por verificarTipos() (Aluno 3) e gerarArvoreAtribuida()
+# (Aluno 4).
 
 # Tipos em MAIÚSCULAS para alinhar com os nomes dos terminais da gramática
 # LL(1) da Fase 2 (INT, REAL, BOOL).
@@ -18,6 +19,8 @@ ESCOPO_GLOBAL = "global"
 # de uma vez. O Aluno 3 estende com mais códigos em verificarTipos().
 COD_VARIAVEL_NAO_DECLARADA = "VARIAVEL_NAO_DECLARADA"
 COD_REDEFINICAO_INCOMPATIVEL = "REDEFINICAO_INCOMPATIVEL"
+COD_RES_INDICE_INVALIDO = "RES_INDICE_INVALIDO"
+COD_FOR_VARIAVEL_REDEFINIDA = "FOR_VARIAVEL_REDEFINIDA"
 
 
 def _criar_simbolo(nome, tipo, linha):
@@ -66,7 +69,7 @@ def _inferir_tipo_valor(no_valor, simbolos):
     return TIPO_INDEFINIDO
 
 
-def _tratar_atribuicao_memoria(no, simbolos, erros):
+def _tratar_atribuicao_memoria(no, simbolos, erros, contexto):
     nome = no.get("nome")
     linha = no.get("linha")
     no_valor = no.get("valor")
@@ -74,7 +77,7 @@ def _tratar_atribuicao_memoria(no, simbolos, erros):
     # Visita o lado direito ANTES de registrar o símbolo. Garante que, em
     # (Y MEM X), a leitura de Y seja contabilizada (e possível erro de Y
     # não declarado seja reportado) antes de inferirmos o tipo de X.
-    _percorrer(no_valor, simbolos, erros)
+    _percorrer(no_valor, simbolos, erros, contexto)
 
     tipo_inferido = _inferir_tipo_valor(no_valor, simbolos)
 
@@ -105,7 +108,7 @@ def _tratar_atribuicao_memoria(no, simbolos, erros):
         # para todos os usos posteriores da variável.
 
 
-def _tratar_leitura_memoria(no, simbolos, erros):
+def _tratar_leitura_memoria(no, simbolos, erros, contexto):
     nome = no.get("nome")
     linha = no.get("linha")
 
@@ -123,36 +126,136 @@ def _tratar_leitura_memoria(no, simbolos, erros):
         simbolos[nome]["linhas_uso"].append(linha)
 
 
-def _percorrer(no, simbolos, erros):
+def _tratar_res(no, simbolos, erros, contexto):
+    indice = no.get("indice")
+    linha = no.get("linha")
+    linha_logica = contexto["linha_logica"]
+
+    # Convenção do enunciado (Seção 2.2): (N RES) retorna o resultado da
+    # expressão N linhas anteriores. N deve ser inteiro não-negativo e
+    # apontar para uma linha que já foi executada.
+    if not isinstance(indice, int) or indice < 0:
+        erros.append(_criar_erro(
+            COD_RES_INDICE_INVALIDO,
+            linha,
+            "RES",
+            f"Erro semântico na linha {linha}: índice de RES deve ser "
+            f"inteiro não-negativo, recebido '{indice}'."
+        ))
+        return
+
+    if indice >= linha_logica:
+        erros.append(_criar_erro(
+            COD_RES_INDICE_INVALIDO,
+            linha,
+            "RES",
+            f"Erro semântico na linha {linha}: (RES {indice}) faz "
+            f"referência a uma linha inexistente (só existem "
+            f"{linha_logica} linha(s) anterior(es)."
+        ))
+
+
+def _tratar_for(no, simbolos, erros, contexto):
+    nome_variavel = no.get("variavel")
+    linha = no.get("linha")
+    no_inicio = no.get("inicio")
+    no_fim = no.get("fim")
+    no_corpo = no.get("corpo")
+
+    # Visita os limites antes da variável de controle, para contabilizar
+    # leituras que possam aparecer em (inicio) ou (fim).
+    _percorrer(no_inicio, simbolos, erros, contexto)
+    _percorrer(no_fim, simbolos, erros, contexto)
+
+    # A gramática força (FOR INT INT MEM_ID ...), então a variável de
+    # controle é sempre INT por construção.
+    if nome_variavel not in simbolos:
+        simbolos[nome_variavel] = _criar_simbolo(nome_variavel, TIPO_INT, linha)
+    else:
+        tipo_anterior = simbolos[nome_variavel]["tipo"]
+        if tipo_anterior not in (TIPO_INT, TIPO_INDEFINIDO):
+            erros.append(_criar_erro(
+                COD_FOR_VARIAVEL_REDEFINIDA,
+                linha,
+                nome_variavel,
+                f"Erro semântico na linha {linha}: variável '{nome_variavel}' "
+                f"foi declarada como {tipo_anterior} na linha "
+                f"{simbolos[nome_variavel]['linha_definicao']} e está sendo "
+                f"usada como variável de controle de FOR (que exige INT)."
+            ))
+        elif tipo_anterior == TIPO_INDEFINIDO:
+            simbolos[nome_variavel]["tipo"] = TIPO_INT
+
+    _percorrer(no_corpo, simbolos, erros, contexto)
+
+
+def _tratar_expressao_aritmetica(no, simbolos, erros, contexto):
+    for operando in no.get("operandos", []):
+        _percorrer(operando, simbolos, erros, contexto)
+
+
+def _tratar_condicao(no, simbolos, erros, contexto):
+    _percorrer(no.get("esquerdo"), simbolos, erros, contexto)
+    _percorrer(no.get("direito"), simbolos, erros, contexto)
+
+
+def _tratar_if(no, simbolos, erros, contexto):
+    _percorrer(no.get("condicao"), simbolos, erros, contexto)
+    _percorrer(no.get("entao"), simbolos, erros, contexto)
+    _percorrer(no.get("senao"), simbolos, erros, contexto)
+
+
+def _tratar_while(no, simbolos, erros, contexto):
+    _percorrer(no.get("condicao"), simbolos, erros, contexto)
+    _percorrer(no.get("corpo"), simbolos, erros, contexto)
+
+
+def _percorrer(no, simbolos, erros, contexto):
     if not isinstance(no, dict):
         return
 
     tipo_no = no.get("tipo")
 
     if tipo_no == "sequencia":
-        _percorrer(no.get("atual"), simbolos, erros)
-        _percorrer(no.get("proximo"), simbolos, erros)
+        # Linha lógica só incrementa para nós no NÍVEL SUPERIOR do programa
+        # (filhos diretos de uma 'sequencia'). Sub-expressões aninhadas não
+        # contam para o histórico de RES — mesma semântica usada pelo
+        # gerarAssembly.py da Fase 2.
+        _percorrer(no.get("atual"), simbolos, erros, contexto)
+        contexto["linha_logica"] += 1
+        _percorrer(no.get("proximo"), simbolos, erros, contexto)
         return
 
     if tipo_no == "fim_programa":
         return
 
-    if tipo_no == "atribuicao_memoria":
-        _tratar_atribuicao_memoria(no, simbolos, erros)
-        return
-
-    if tipo_no == "leitura_memoria":
-        _tratar_leitura_memoria(no, simbolos, erros)
-        return
-
     if tipo_no == "terminal":
         return
+
+    despachadores = {
+        "atribuicao_memoria": _tratar_atribuicao_memoria,
+        "leitura_memoria": _tratar_leitura_memoria,
+        "res": _tratar_res,
+        "for": _tratar_for,
+        "expressao_aritmetica": _tratar_expressao_aritmetica,
+        "condicao": _tratar_condicao,
+        "if": _tratar_if,
+        "while": _tratar_while,
+    }
+
+    handler = despachadores.get(tipo_no)
+    if handler:
+        handler(no, simbolos, erros, contexto)
 
 
 def construirTabelaSimbolos(arvore):
     simbolos = {}
     erros = []
-    _percorrer(arvore, simbolos, erros)
+    # contexto mutável é mais simples que passar linha_logica por valor e
+    # devolver via tupla em cada handler — todos os handlers ficam com a
+    # mesma assinatura.
+    contexto = {"linha_logica": 0}
+    _percorrer(arvore, simbolos, erros, contexto)
     return {
         "simbolos": simbolos,
         "erros": erros,
