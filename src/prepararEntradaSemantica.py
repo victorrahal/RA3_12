@@ -14,8 +14,18 @@ def prepararEntradaSemantica(arquivo):
     if not os.path.isfile(caminhoArquivo):
         raise FileNotFoundError(f'Arquivo "{arquivo}" não encontrado na pasta testes.')
     
+    with open(caminhoArquivo, 'r') as f:
+        conteudo = f.read()
+
+    conteudoSemComentario = removerComentarios(conteudo)
+    caminhoArquivoSemComentarios = os.path.join(raiz, 'saida', 'entrada_sem_comentarios.txt')
+
+    with open(caminhoArquivoSemComentarios, 'w')  as f:
+        f.write(conteudoSemComentario)
+
+
     # Análise Léxica
-    tokens = lerTokens(caminhoArquivo)
+    tokens = lerTokens(caminhoArquivoSemComentarios)
 
     # Contrução da gramática LL(1)
     info = construirGramatica()
@@ -23,7 +33,7 @@ def prepararEntradaSemantica(arquivo):
     # Análise Sintática
     derivacao, arvoreSintaticaJson = parsear(
         tokens, 
-        info["tabela__LL1"],
+        info["tabela_ll1"],
         info["inicio"]
     )
 
@@ -39,7 +49,8 @@ def prepararEntradaSemantica(arquivo):
         "derivacao": derivacao,
         "arvore_sintatica": arvoreSintatica,
         "arvore_sintatica_json": arvoreSintaticaJson,
-        "arvore_simplificada": arvoreSimplificada
+        "arvore_simplificada": arvoreSimplificada,
+        "arquivo_sem_comentario": caminhoArquivoSemComentarios
     }
 
 def removerComentarios(conteudo):
