@@ -5,15 +5,6 @@
 # Saída é consumida por verificarTipos() (Aluno 3) e gerarArvoreAtribuida()
 # (Aluno 4).
 
-import json
-import os
-
-# Caminhos padrão de saída. Mesma convenção usada por gerarArvore.py e
-# gerarAssembly.py da Fase 2: caminho calculado a partir da raiz do projeto
-# uma única vez, no momento da importação do módulo.
-_RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-_CAMINHO_TABELA_JSON = os.path.join(_RAIZ, "saida", "tabela_simbolos.json")
-
 # Tipos em MAIÚSCULAS para alinhar com os nomes dos terminais da gramática
 # LL(1) da Fase 2 (INT, REAL, BOOL).
 TIPO_INT = "INT"
