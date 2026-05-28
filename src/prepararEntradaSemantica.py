@@ -17,7 +17,7 @@ def prepararEntradaSemantica(arquivo):
     # Análise Léxica
     tokens = lerTokens(caminhoArquivo)
 
-    # Contrução da gramática LL(1)
+    # Construção da gramática LL(1)
     info = construirGramatica()
 
     # Análise Sintática
@@ -38,6 +38,6 @@ def prepararEntradaSemantica(arquivo):
         "tokens": tokens,
         "derivacao": derivacao,
         "arvore_sintatica": arvoreSintatica,
-        "arvore_sintatica_json": arvoreSintaticaJson,
+        "arvore_base_semantica": arvoreSintaticaJson,
         "arvore_simplificada": arvoreSimplificada
     }

@@ -1,4 +1,4 @@
-# João Henrique Tomaz Dutra - Aluno 2
+# Lucas Balint Vilar - Aluno 1
 from construirGramatica import construirGramatica
 from lerTokens import lerTokens
 import json
