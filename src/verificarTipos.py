@@ -1,5 +1,5 @@
-# verificarTipos.py
-# Versão ajustada para a árvore/gramática do projeto.
+# João Henrique Tomaz Dutra - Aluno 3
+
 
 TIPO_INT = "INT"
 TIPO_REAL = "REAL"
@@ -30,9 +30,7 @@ def verificarTipos(arvore, tabelaSimbolos):
     operadores_real = {"OP_DIVR"}
     operadores_relacionais = {"OP_LT", "OP_GT"}
 
-    # ------------------------------------------------------------------
-    # Funções auxiliares simples para trabalhar com a árvore crua.
-    # ------------------------------------------------------------------
+
     def eh_terminal(no):
         return isinstance(no, dict) and no.get("tipo_no") == "terminal"   # definindo os terminais 
 
@@ -109,9 +107,7 @@ def verificarTipos(arvore, tabelaSimbolos):
 
         return anotar(no, None)
 
-    # ------------------------------------------------------------------
-    # Regras de tipos para operadores.
-    # ------------------------------------------------------------------
+
     def aplicar_operador(no_operador, t1, t2):    #tratativas para os operadores 
         operador = no_operador.get("simbolo")
 
@@ -170,9 +166,7 @@ def verificarTipos(arvore, tabelaSimbolos):
         if tipo_atual == TIPO_INDEFINIDO and tipo_valor not in (TIPO_ERRO, None, TIPO_INDEFINIDO):
             simbolos[nome]["tipo"] = tipo_valor
 
-    # ------------------------------------------------------------------
-    # Inferência dirigida pela gramática real.
-    # ------------------------------------------------------------------
+
     def inferir(no):   # Percorre a árvore e retorna o tipo de cada subárvore 
         if not isinstance(no, dict):
             return None
