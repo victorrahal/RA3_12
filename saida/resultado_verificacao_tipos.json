@@ -128,7 +128,7 @@
                           "linha": 2
                         },
                         "filhos": [],
-                        "tipo_inferido": "ERRO"
+                        "tipo_inferido": "REAL"
                       }
                     ],
                     "tipo_inferido": "REAL"
@@ -198,7 +198,7 @@
                               "linha": 3
                             },
                             "filhos": [],
-                            "tipo_inferido": "ERRO"
+                            "tipo_inferido": "REAL"
                           },
                           {
                             "tipo_no": "nao_terminal",
@@ -210,7 +210,7 @@
                             "filhos": []
                           }
                         ],
-                        "tipo_inferido": "ERRO"
+                        "tipo_inferido": "REAL"
                       },
                       {
                         "tipo_no": "terminal",
@@ -285,24 +285,24 @@
                         "tipo_inferido": null
                       }
                     ],
-                    "tipo_inferido": "ERRO"
+                    "tipo_inferido": "REAL"
                   }
                 ],
-                "tipo_inferido": "ERRO"
+                "tipo_inferido": "REAL"
               }
             ],
-            "tipo_inferido": "ERRO"
+            "tipo_inferido": "REAL"
           }
         ],
-        "tipo_inferido": "ERRO"
+        "tipo_inferido": "REAL"
       }
     ],
-    "tipo_inferido": "ERRO"
+    "tipo_inferido": "REAL"
   },
   "tabelaSimbolos": {
     "simbolos": {
-      "A": {
-        "nome": "A",
+      "VALOR": {
+        "nome": "VALOR",
         "tipo": "REAL",
         "linha_definicao": 2,
         "linhas_uso": [
@@ -312,39 +312,7 @@
         "escopo": "global"
       }
     },
-    "erros": [
-      {
-        "codigo": "VARIAVEL_NAO_DECLARADA",
-        "linha": 3,
-        "simbolo": "B",
-        "mensagem": "Erro semântico na linha 3: variável 'B' usada sem ter sido declarada."
-      }
-    ]
+    "erros": []
   },
-  "erros": [
-    {
-      "codigo": "VARIAVEL_NAO_DECLARADA",
-      "linha": 3,
-      "simbolo": "B",
-      "mensagem": "Erro semântico na linha 3: variável 'B' usada sem ter sido declarada."
-    },
-    {
-      "codigo": "VARIAVEL_NAO_DECLARADA",
-      "linha": 2,
-      "simbolo": "VALOR",
-      "mensagem": "Erro semântico na linha 2: variável 'VALOR' usada sem ter sido declarada."
-    },
-    {
-      "codigo": "ATRIBUICAO_TIPO_INCOMPATIVEL",
-      "linha": 2,
-      "simbolo": "VALOR",
-      "mensagem": "Erro semântico na linha 2: variável 'VALOR' é ERRO, mas recebeu valor REAL."
-    },
-    {
-      "codigo": "VARIAVEL_NAO_DECLARADA",
-      "linha": 3,
-      "simbolo": "VALOR",
-      "mensagem": "Erro semântico na linha 3: variável 'VALOR' usada sem ter sido declarada."
-    }
-  ]
+  "erros": []
 }
