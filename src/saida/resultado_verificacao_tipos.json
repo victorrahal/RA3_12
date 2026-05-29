@@ -1,0 +1,350 @@
+{
+  "arvore": {
+    "tipo_no": "nao_terminal",
+    "simbolo": "programa",
+    "producao": [
+      "LPAREN",
+      "KW_START",
+      "RPAREN",
+      "linhas"
+    ],
+    "token": null,
+    "filhos": [
+      {
+        "tipo_no": "terminal",
+        "simbolo": "LPAREN",
+        "producao": [],
+        "token": {
+          "tipo": "LPAREN",
+          "valor": "(",
+          "linha": 1
+        },
+        "filhos": [],
+        "tipo_inferido": null
+      },
+      {
+        "tipo_no": "terminal",
+        "simbolo": "KW_START",
+        "producao": [],
+        "token": {
+          "tipo": "KW_START",
+          "valor": "START",
+          "linha": 1
+        },
+        "filhos": [],
+        "tipo_inferido": null
+      },
+      {
+        "tipo_no": "terminal",
+        "simbolo": "RPAREN",
+        "producao": [],
+        "token": {
+          "tipo": "RPAREN",
+          "valor": ")",
+          "linha": 1
+        },
+        "filhos": [],
+        "tipo_inferido": null
+      },
+      {
+        "tipo_no": "nao_terminal",
+        "simbolo": "linhas",
+        "producao": [
+          "LPAREN",
+          "linhas_rest"
+        ],
+        "token": null,
+        "filhos": [
+          {
+            "tipo_no": "terminal",
+            "simbolo": "LPAREN",
+            "producao": [],
+            "token": {
+              "tipo": "LPAREN",
+              "valor": "(",
+              "linha": 2
+            },
+            "filhos": [],
+            "tipo_inferido": null
+          },
+          {
+            "tipo_no": "nao_terminal",
+            "simbolo": "linhas_rest",
+            "producao": [
+              "corpo",
+              "RPAREN",
+              "linhas"
+            ],
+            "token": null,
+            "filhos": [
+              {
+                "tipo_no": "nao_terminal",
+                "simbolo": "corpo",
+                "producao": [
+                  "REAL",
+                  "resto_corpo"
+                ],
+                "token": null,
+                "filhos": [
+                  {
+                    "tipo_no": "terminal",
+                    "simbolo": "REAL",
+                    "producao": [],
+                    "token": {
+                      "tipo": "REAL",
+                      "valor": "42.5",
+                      "linha": 2
+                    },
+                    "filhos": [],
+                    "tipo_inferido": "REAL"
+                  },
+                  {
+                    "tipo_no": "nao_terminal",
+                    "simbolo": "resto_corpo",
+                    "producao": [
+                      "KW_MEM",
+                      "MEM_ID"
+                    ],
+                    "token": null,
+                    "filhos": [
+                      {
+                        "tipo_no": "terminal",
+                        "simbolo": "KW_MEM",
+                        "producao": [],
+                        "token": {
+                          "tipo": "KW_MEM",
+                          "valor": "MEM",
+                          "linha": 2
+                        },
+                        "filhos": []
+                      },
+                      {
+                        "tipo_no": "terminal",
+                        "simbolo": "MEM_ID",
+                        "producao": [],
+                        "token": {
+                          "tipo": "MEM_ID",
+                          "valor": "VALOR",
+                          "linha": 2
+                        },
+                        "filhos": [],
+                        "tipo_inferido": "ERRO"
+                      }
+                    ],
+                    "tipo_inferido": "REAL"
+                  }
+                ],
+                "tipo_inferido": "REAL"
+              },
+              {
+                "tipo_no": "terminal",
+                "simbolo": "RPAREN",
+                "producao": [],
+                "token": {
+                  "tipo": "RPAREN",
+                  "valor": ")",
+                  "linha": 2
+                },
+                "filhos": [],
+                "tipo_inferido": null
+              },
+              {
+                "tipo_no": "nao_terminal",
+                "simbolo": "linhas",
+                "producao": [
+                  "LPAREN",
+                  "linhas_rest"
+                ],
+                "token": null,
+                "filhos": [
+                  {
+                    "tipo_no": "terminal",
+                    "simbolo": "LPAREN",
+                    "producao": [],
+                    "token": {
+                      "tipo": "LPAREN",
+                      "valor": "(",
+                      "linha": 3
+                    },
+                    "filhos": [],
+                    "tipo_inferido": null
+                  },
+                  {
+                    "tipo_no": "nao_terminal",
+                    "simbolo": "linhas_rest",
+                    "producao": [
+                      "corpo",
+                      "RPAREN",
+                      "linhas"
+                    ],
+                    "token": null,
+                    "filhos": [
+                      {
+                        "tipo_no": "nao_terminal",
+                        "simbolo": "corpo",
+                        "producao": [
+                          "MEM_ID",
+                          "cauda_mem"
+                        ],
+                        "token": null,
+                        "filhos": [
+                          {
+                            "tipo_no": "terminal",
+                            "simbolo": "MEM_ID",
+                            "producao": [],
+                            "token": {
+                              "tipo": "MEM_ID",
+                              "valor": "VALOR",
+                              "linha": 3
+                            },
+                            "filhos": [],
+                            "tipo_inferido": "ERRO"
+                          },
+                          {
+                            "tipo_no": "nao_terminal",
+                            "simbolo": "cauda_mem",
+                            "producao": [
+                              "Îµ"
+                            ],
+                            "token": null,
+                            "filhos": []
+                          }
+                        ],
+                        "tipo_inferido": "ERRO"
+                      },
+                      {
+                        "tipo_no": "terminal",
+                        "simbolo": "RPAREN",
+                        "producao": [],
+                        "token": {
+                          "tipo": "RPAREN",
+                          "valor": ")",
+                          "linha": 3
+                        },
+                        "filhos": [],
+                        "tipo_inferido": null
+                      },
+                      {
+                        "tipo_no": "nao_terminal",
+                        "simbolo": "linhas",
+                        "producao": [
+                          "LPAREN",
+                          "linhas_rest"
+                        ],
+                        "token": null,
+                        "filhos": [
+                          {
+                            "tipo_no": "terminal",
+                            "simbolo": "LPAREN",
+                            "producao": [],
+                            "token": {
+                              "tipo": "LPAREN",
+                              "valor": "(",
+                              "linha": 4
+                            },
+                            "filhos": [],
+                            "tipo_inferido": null
+                          },
+                          {
+                            "tipo_no": "nao_terminal",
+                            "simbolo": "linhas_rest",
+                            "producao": [
+                              "KW_END",
+                              "RPAREN"
+                            ],
+                            "token": null,
+                            "filhos": [
+                              {
+                                "tipo_no": "terminal",
+                                "simbolo": "KW_END",
+                                "producao": [],
+                                "token": {
+                                  "tipo": "KW_END",
+                                  "valor": "END",
+                                  "linha": 4
+                                },
+                                "filhos": [],
+                                "tipo_inferido": null
+                              },
+                              {
+                                "tipo_no": "terminal",
+                                "simbolo": "RPAREN",
+                                "producao": [],
+                                "token": {
+                                  "tipo": "RPAREN",
+                                  "valor": ")",
+                                  "linha": 4
+                                },
+                                "filhos": [],
+                                "tipo_inferido": null
+                              }
+                            ],
+                            "tipo_inferido": null
+                          }
+                        ],
+                        "tipo_inferido": null
+                      }
+                    ],
+                    "tipo_inferido": "ERRO"
+                  }
+                ],
+                "tipo_inferido": "ERRO"
+              }
+            ],
+            "tipo_inferido": "ERRO"
+          }
+        ],
+        "tipo_inferido": "ERRO"
+      }
+    ],
+    "tipo_inferido": "ERRO"
+  },
+  "tabelaSimbolos": {
+    "simbolos": {
+      "A": {
+        "nome": "A",
+        "tipo": "REAL",
+        "linha_definicao": 2,
+        "linhas_uso": [
+          3
+        ],
+        "inicializada": true,
+        "escopo": "global"
+      }
+    },
+    "erros": [
+      {
+        "codigo": "VARIAVEL_NAO_DECLARADA",
+        "linha": 3,
+        "simbolo": "B",
+        "mensagem": "Erro semântico na linha 3: variável 'B' usada sem ter sido declarada."
+      }
+    ]
+  },
+  "erros": [
+    {
+      "codigo": "VARIAVEL_NAO_DECLARADA",
+      "linha": 3,
+      "simbolo": "B",
+      "mensagem": "Erro semântico na linha 3: variável 'B' usada sem ter sido declarada."
+    },
+    {
+      "codigo": "VARIAVEL_NAO_DECLARADA",
+      "linha": 2,
+      "simbolo": "VALOR",
+      "mensagem": "Erro semântico na linha 2: variável 'VALOR' usada sem ter sido declarada."
+    },
+    {
+      "codigo": "ATRIBUICAO_TIPO_INCOMPATIVEL",
+      "linha": 2,
+      "simbolo": "VALOR",
+      "mensagem": "Erro semântico na linha 2: variável 'VALOR' é ERRO, mas recebeu valor REAL."
+    },
+    {
+      "codigo": "VARIAVEL_NAO_DECLARADA",
+      "linha": 3,
+      "simbolo": "VALOR",
+      "mensagem": "Erro semântico na linha 3: variável 'VALOR' usada sem ter sido declarada."
+    }
+  ]
+}

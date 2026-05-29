@@ -1,11 +1,36 @@
 # João Henrique Tomaz Dutra - Aluno 3
-
+import json
+import os
 
 TIPO_INT = "INT"
 TIPO_REAL = "REAL"
 TIPO_BOOL = "BOOL"
 TIPO_INDEFINIDO = "INDEFINIDO"
 TIPO_ERRO = "ERRO"
+
+with open("arvore.json", "r", encoding="utf-8") as f:
+    arvore = json.load(f)
+    
+tabelaSimbolos = {
+    "simbolos": {
+        "A": {
+            "nome": "A",
+            "tipo": "REAL",
+            "linha_definicao": 2,
+            "linhas_uso": [3],
+            "inicializada": True,
+            "escopo": "global"
+        }
+    },
+    "erros": [
+        {
+            "codigo": "VARIAVEL_NAO_DECLARADA",
+            "linha": 3,
+            "simbolo": "B",
+            "mensagem": "Erro semântico na linha 3: variável 'B' usada sem ter sido declarada."
+        }
+    ]
+}
 
 
 def verificarTipos(arvore, tabelaSimbolos):
@@ -372,3 +397,19 @@ def verificarTipos(arvore, tabelaSimbolos):
         "tabelaSimbolos": tabelaSimbolos,
         "erros": erros_anteriores + erros
     }
+    
+resultado = verificarTipos(arvore, tabelaSimbolos)
+
+
+# -----------------------------
+# Salva saída final
+# -----------------------------
+os.makedirs("saida", exist_ok=True)
+
+with open("saida/resultado_verificacao_tipos.json", "w", encoding="utf-8") as f:
+    json.dump(
+        resultado,
+        f,
+        indent=2,
+        ensure_ascii=False
+    )
