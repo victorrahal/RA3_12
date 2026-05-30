@@ -21,14 +21,14 @@ def prepararEntradaSemantica(arquivo):
     info = construirGramatica()
 
     # Análise Sintática
-    derivacao, arvoreSintaticaJson = parsear(
+    derivacao, derivacaoJson = parsear(
         tokens, 
         info["tabela_ll1"],
         info["inicio"]
     )
 
     # Geração da árvore sintática em objetos
-    arvoreSintatica = gerarArvore(arvoreSintaticaJson)
+    arvoreSintatica = gerarArvore(derivacaoJson)
 
     # Geração da árvore simplificada
     arvoreSimplificada = simplificarArvore(arvoreSintatica)
@@ -38,6 +38,6 @@ def prepararEntradaSemantica(arquivo):
         "tokens": tokens,
         "derivacao": derivacao,
         "arvore_sintatica": arvoreSintatica,
-        "arvore_base_semantica": arvoreSintaticaJson,
+        "arvore_base_semantica": derivacaoJson,
         "arvore_simplificada": arvoreSimplificada
     }

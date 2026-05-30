@@ -81,7 +81,7 @@ def lerTokens(arquivo):
             )
         
     if dentroComentario:
-        raise ValueError("Erro léxico: comentárioi iniciado com *{ não foi fechado com }*.")
+        raise ValueError("Erro léxico: comentário iniciado com *{ não foi fechado com }*.")
  
     # Token de fim de entrada (necessário para o parser)
     tokens.append(criarToken("$", "$", -1))
