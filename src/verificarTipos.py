@@ -1,11 +1,11 @@
 # João Henrique Tomaz Dutra - Aluno 3
 
-
 TIPO_INT = "INT"
 TIPO_REAL = "REAL"
 TIPO_BOOL = "BOOL"
 TIPO_INDEFINIDO = "INDEFINIDO"
 TIPO_ERRO = "ERRO"
+
 
 
 def verificarTipos(arvore, tabelaSimbolos):
@@ -176,7 +176,6 @@ def verificarTipos(arvore, tabelaSimbolos):
 
         simb = no.get("simbolo")
         filhos = no.get("filhos", [])
-        prod = no.get("producao", [])
 
         if simb == "programa" or simb == "linhas" or simb == "linhas_rest": # faz o tratamento para os nós estruturais da gramática
             ultimo_tipo = None
