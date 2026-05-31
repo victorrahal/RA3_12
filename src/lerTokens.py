@@ -4,8 +4,8 @@ from tokensConfig import criarToken, OPERADORES_SIMPLES
 from estadosLexicos import estadoNumero, estadoPalavra
  
 def lerTokens(arquivo):
-    tokens = []
-    dentroComentario = False
+    tokens = [] # Lista que armazenará todos os rokens reconhecidos
+    dentroComentario = False # Controla se o analisador está dentro de um bloco de comentário
  
     try:
         with open(arquivo, 'r') as f:
@@ -13,12 +13,14 @@ def lerTokens(arquivo):
     except FileNotFoundError:
         raise FileNotFoundError(f"Arquivo '{arquivo}' não encontrado.")
  
+    # Percorre todas as linhas do arquivo
     for num_linha, linha in enumerate(linhas, start=1):
         linha = linha.strip()
         if not linha:
             continue
  
         i = 0
+        # Percorre caractere por caractere da linha atual
         while i < len(linha):
 
             # Início de comentário: *{
