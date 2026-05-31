@@ -8,31 +8,35 @@ from parsear import parsear
 from gerarArvore import gerarArvore, simplificarArvore
 
 def prepararEntradaSemantica(arquivo):
+    # Obtém o caminho raiz do projeto
     raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    # Monta o caminhodo arquivo teste recebido
     caminhoArquivo = os.path.join(raiz, "testes", arquivo)
 
+    # Verifica se o arquivo existe
     if not os.path.isfile(caminhoArquivo):
         raise FileNotFoundError(f'Arquivo "{arquivo}" não encontrado na pasta testes.')
 
-    # Análise Léxica
+    # Executa a análise léxica e gera o vetor de tokens
     tokens = lerTokens(caminhoArquivo)
 
-    # Construção da gramática LL(1)
+    # Constrói a gramática LL(1) utilizada pelo parser 
     info = construirGramatica()
 
-    # Análise Sintática
+    # Executa análise sintática e gera a derivação e a árvore sintática inicial
     derivacao, derivacaoJson = parsear(
         tokens, 
         info["tabela_ll1"],
         info["inicio"]
     )
 
-    # Geração da árvore sintática em objetos
+    # Converte json retornado pelo parser para estrutura em objetos
     arvoreSintatica = gerarArvore(derivacaoJson)
 
-    # Geração da árvore simplificada
+    # Gerauma versão simplificada da árvore sintática
     arvoreSimplificada = simplificarArvore(arvoreSintatica)
 
+    # Retorna todas as estruturasque serão utilizadas pelas próximas etapas da análise semântica
     return {
         "arquivo": caminhoArquivo,
         "tokens": tokens,
