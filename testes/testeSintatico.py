@@ -30,7 +30,7 @@ class TesteSintatico(unittest.TestCase):
 
     def test_programa_com_erro_lexico_lanca_excecao(self):
         with self.assertRaises(Exception):
-            _tokens("teste2.txt")
+            _tokens("teste_comentario_nao_fechado.txt")
 
     def test_programa_sem_start_lanca_erro_sintatico(self):
         raiz = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
