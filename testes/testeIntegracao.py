@@ -54,14 +54,19 @@ class TesteIntegracao(unittest.TestCase):
     def test_programa_com_erro_nao_produz_assembly(self):
         r = _rodar("teste2.txt")
         erros = r["tipos"]["erros"]
-        if erros:
-            caminho_asm = os.path.join(
-                os.path.dirname(__file__), "..", "saida", "Assembly.s"
-            )
-            if os.path.exists(caminho_asm):
-                os.remove(caminho_asm)
-            self.assertTrue(True, "Assembly não deve ser gerado com erros")
-
+        self.assertGreater(len(erros), 0,
+                           "teste2.txt deve ter erros semânticos")
+        caminho_asm = os.path.join(
+            os.path.dirname(__file__), "..", "saida", "Assembly.s"
+        )
+        if os.path.exists(caminho_asm):
+            os.remove(caminho_asm)
+        if not erros:
+            gerarAssembly(r["arvore"])
+        self.assertFalse(
+            os.path.exists(caminho_asm),
+            "Assembly.s não deve existir quando há erros semânticos"
+        )
     def test_tipo_int_anotado_corretamente(self):
         from prepararEntradaSemantica import prepararEntradaSemantica as pep
         from construirTabelaSimbolos import construirTabelaSimbolos as cts
