@@ -321,11 +321,8 @@ def verificarTipos(arvore, tabelaSimbolos):
 
         primeiro = filhos_resto[0].get("simbolo")
 
-        # resto_corpo -> KW_RES
         if primeiro == "KW_RES":
-            # A validade do índice já é conferida na tabela de símbolos.
-            # Aqui apenas propagamos o tipo do valor usado como referência.
-            return anotar(no, tipo_esq)
+            return anotar(no, TIPO_INDEFINIDO)
 
         # resto_corpo -> KW_MEM MEM_ID
         if primeiro == "KW_MEM":
