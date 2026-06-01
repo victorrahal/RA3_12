@@ -5,7 +5,7 @@
 ((3 2 +) (5 1 -) *)
 (((2 3 +) 4 *) 2 /)
 (9 4 %)
-(8.0 *{ comentario entre tokens } 2.0 |)
+(8.0 *{ comentario entre tokens }* 2.0 |)
 (2 3 ^)
 (0 MEM BASE)
 (1 MEM FATOR)

@@ -70,7 +70,7 @@ def _tipo_no(no, simbolos, historico):
         no["tipo_inferido"] = TIPO_BOOL
     elif tipo == "res":
         indice = no.get("indice", 0)
-        pos = len(historico) - indice
+        pos = len(historico) - 1 - indice
         no["tipo_inferido"] = historico[pos] if 0 <= pos < len(historico) else TIPO_INDEFINIDO
         historico.append(no["tipo_inferido"])
     elif tipo == "if":
