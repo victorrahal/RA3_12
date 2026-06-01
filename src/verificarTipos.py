@@ -40,22 +40,70 @@ def verificarTipos(arvore, tabelaSimbolos):
     def valor(no):
         return token(no).get("valor")   # puxando valor da árvore 
 
+    linhas_por_no = {}
+    linha_global = {"valor": None}
+
+    def preencher_linhas(no, linha_contexto=None):
+        if not isinstance(no, dict):
+            return linha_contexto
+
+        tok = token(no)
+        linha_token = tok.get("linha")
+
+        if linha_global["valor"] is None and linha_token is not None:
+            linha_global["valor"] = linha_token
+
+        # Se o nó não tem token próprio, herda a linha mais próxima já vista
+        # no mesmo contexto sintático.
+        linha_no = linha_token if linha_token is not None else linha_contexto
+        linhas_por_no[id(no)] = linha_no
+
+        ultima_linha = linha_no
+        primeira_linha_filho = None
+
+        for filho in no.get("filhos", []):
+            ultima_linha = preencher_linhas(filho, ultima_linha)
+            linha_filho = linhas_por_no.get(id(filho))
+            if primeira_linha_filho is None and linha_filho is not None:
+                primeira_linha_filho = linha_filho
+
+        # Para nós estruturais como corpo/linha/condicao, usa a primeira linha
+        # encontrada nos filhos se não houver linha herdada.
+        if linhas_por_no[id(no)] is None and primeira_linha_filho is not None:
+            linhas_por_no[id(no)] = primeira_linha_filho
+
+        return ultima_linha if ultima_linha is not None else linhas_por_no.get(id(no))
+
+    preencher_linhas(arvore)
+
     def linha_do_no(no):
-        tok = token(no)  #primeiro pega token do nó
-        if tok.get("linha") is not None:  # caso ele tenha pega, se não verifica nos filhos dele 
-            return tok.get("linha")                                 
-        for filho in (no or {}).get("filhos", []):
+        if not isinstance(no, dict):
+            return linha_global["valor"] if linha_global["valor"] is not None else "?"
+
+        tok = token(no)  # primeiro pega token do nó
+        if tok.get("linha") is not None:
+            return tok.get("linha")
+
+        # Depois usa a linha propagada pelo pré-processamento da árvore.
+        linha_propagada = linhas_por_no.get(id(no))
+        if linha_propagada is not None:
+            return linha_propagada
+
+        # depois do pré-processamento.
+        for filho in no.get("filhos", []):
             linha = linha_do_no(filho)
             if linha != "?":
                 return linha
-        return "?"
+
+        return linha_global["valor"] if linha_global["valor"] is not None else "?"
 
     def adicionar_erro(codigo, no, simbolo, mensagem):
+        linha = linha_do_no(no)
         erros.append({
             "codigo": codigo,     # adciona o erro na lista com esse format 
-            "linha": linha_do_no(no),
+            "linha": linha,
             "simbolo": simbolo,
-            "mensagem": f"Erro semântico na linha {linha_do_no(no)}: {mensagem}"
+            "mensagem": f"Erro semântico na linha {linha}: {mensagem}"
         })
 
     def anotar(no, tipo):
