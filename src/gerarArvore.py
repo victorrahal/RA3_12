@@ -151,9 +151,15 @@ def simplificarArvore(no):
                 #caso expressão aritmética
                 esquerdo = simplificarArvore(no.filhos[0])
                 resto = no.filhos[1]
+
+                # Caso: MEM_ID -> cauda_mem -> resto_corpo
+                if resto.simbolo == "cauda_mem" and len(resto.filhos) == 1:
+                    resto = resto.filhos[0]
+
                 if resto.simbolo == "resto_corpo" and len(resto.filhos) == 2:
                     direito = simplificarArvore(resto.filhos[0])
                     operador = simplificarArvore(resto.filhos[1])
+
                     return {
                         "tipo": "expressao_aritmetica",
                         "operador": operador["valor"],
