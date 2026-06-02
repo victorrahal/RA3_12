@@ -1,4 +1,4 @@
-# Aluno 1 - Lucas Balint Vilar
+# Lucas Balint Vilar - Aluno 1
 import json
 import os
 

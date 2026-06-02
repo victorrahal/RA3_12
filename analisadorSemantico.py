@@ -1,10 +1,4 @@
-# Integrantes do grupo (ordem alfabética):
-# João Henrique Tomaz Dutra – Jhtomaz
-# Lucas Balint Vilar – lucasdxl
-# Paulo Henrique Eidi Mino – phmino
-# Victor Rahal Basseto – victorrahal
-#
-# Nome do grupo no Canvas: RA3_12
+# Victor Rahal Basseto - Aluno 4
 
 import sys
 import os

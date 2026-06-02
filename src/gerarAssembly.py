@@ -1,4 +1,4 @@
-# Aluno 4: Lucas Balint Vilar
+# Victor Rahal Basseto - Aluno 4
 
 import os
 

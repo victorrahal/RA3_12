@@ -1,4 +1,4 @@
-# Paulo Henrique Eidi Mino - Aluno 3
+# Paulo Henrique Eidi Mino - Aluno 2
 # Configuração e constantes para utilização no analisador léxico
 
 KEYWORDS = {
